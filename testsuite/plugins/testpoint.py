@@ -1,21 +1,11 @@
 import collections.abc
 import typing
-
 import pytest
-
 from testsuite import types
 from testsuite.mockserver import server
 from testsuite.utils import callinfo, http
-
-TestpointHandler = typing.Callable[
-    [types.JsonAnyOptional],
-    types.MaybeAsyncResult[types.JsonAnyOptional],
-]
-TestpointDecorator = typing.Callable[
-    [TestpointHandler],
-    callinfo.AsyncCallQueue,
-]
-
+TestpointHandler = typing.Callable[[types.JsonAnyOptional], types.MaybeAsyncResult[types.JsonAnyOptional]]
+TestpointDecorator = typing.Callable[[TestpointHandler], callinfo.AsyncCallQueue]
 
 class TestpointFixture(collections.abc.MutableMapping):
     """Testpoint control object."""
@@ -32,9 +22,7 @@ class TestpointFixture(collections.abc.MutableMapping):
 
     def __delitem__(self, key):
         if isinstance(key, callinfo.AsyncCallQueue):
-            names = [
-                name for name, value in self._handlers.items() if value == key
-            ]
+            names = [name for name, value in self._handlers.items() if value == key]
             if not names:
                 raise KeyError(f'{key!r}')
             for name in names:
@@ -53,16 +41,11 @@ class TestpointFixture(collections.abc.MutableMapping):
 
         After decoration function is wrapped with `AsyncCallQueue`_.
         """
-
         checker = self._checker_factory(name)
 
         def decorator(func) -> callinfo.AsyncCallQueue:
-            wrapped = callinfo.acallqueue(func, checker=checker)
-            self[name] = wrapped
-            return wrapped
-
+            pass
         return decorator
-
 
 @pytest.fixture(scope='session')
 def testpoint_checker_factory():
@@ -84,18 +67,10 @@ def testpoint_checker_factory():
                    )
            return create_checker
     """
-
-    def create_checker(name):
-        return None
-
-    return create_checker
-
+    pass
 
 @pytest.fixture
-async def testpoint(
-    mockserver: server.MockserverFixture,
-    testpoint_checker_factory,
-) -> TestpointFixture:
+async def testpoint(mockserver: server.MockserverFixture, testpoint_checker_factory) -> TestpointFixture:
     """Testpoint fixture returns testpoint session instance that works
     as decorator that registers testpoint handler. Original function is
     wrapped with :ref:`AsyncCallQueue`
@@ -116,16 +91,4 @@ async def testpoint(
            assert testpoint_handler.next_call == {...}
            aseert testpoint_handler.wait_call() == {...}
     """
-
-    session = TestpointFixture(checker_factory=testpoint_checker_factory)
-
-    @mockserver.json_handler('/testpoint')
-    async def _handler(request: http.Request):
-        body = request.json
-        handler = session.get(body['name'])
-        if handler is None:
-            return {'data': None, 'handled': False}
-        data = await handler(body['data'])
-        return {'data': data, 'handled': True}
-
-    return session
+    pass

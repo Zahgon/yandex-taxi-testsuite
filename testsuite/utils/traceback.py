@@ -6,8 +6,4 @@ def hide(*exceptions):
 
        __tracebackhide__ = traceback.hide(BaseError)
     """
-
-    def tracebackhide(excinfo):
-        return excinfo.errisinstance(exceptions)
-
-    return tracebackhide
+    pass

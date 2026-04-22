@@ -1,10 +1,8 @@
 import collections.abc
 import pathlib
 import typing
-
 from testsuite import types
 from testsuite.utils import yaml_util
-
 
 class MongoSchema(collections.abc.Mapping):
     _directory: pathlib.Path
@@ -31,40 +29,27 @@ class MongoSchema(collections.abc.Mapping):
 
     @property
     def directory(self) -> pathlib.Path:
-        return self._directory
-
+        pass
 
 class MongoSchemaCache:
+
     def __init__(self) -> None:
         self._cache: dict[pathlib.Path, MongoSchema] = {}
 
     def get_schema(self, directory: types.PathOrStr) -> MongoSchema:
-        directory = pathlib.Path(directory)
-        if directory not in self._cache:
-            self._cache[directory] = MongoSchema(directory)
-        return self._cache[directory]
-
+        pass
 
 class MongoSchemas(collections.abc.Mapping):
-    def __init__(
-        self,
-        cache: MongoSchemaCache,
-        directories: typing.Iterable[types.PathOrStr],
-    ):
+
+    def __init__(self, cache: MongoSchemaCache, directories: typing.Iterable[types.PathOrStr]):
         self._cache = cache
-        self._directories = [
-            pathlib.Path(directory) for directory in directories
-        ]
+        self._directories = [pathlib.Path(directory) for directory in directories]
         self._schema_by_collection: dict[str, MongoSchema] = {}
         for directory in self._directories:
             schema = cache.get_schema(directory)
             for name in schema:
                 if name in self._schema_by_collection:
-                    raise RuntimeError(
-                        f'Duplicate definition of collection {name}:\n'
-                        f'  at {self._schema_by_collection[name].directory}\n'
-                        f'  at {directory}',
-                    )
+                    raise RuntimeError(f'Duplicate definition of collection {name}:\n  at {self._schema_by_collection[name].directory}\n  at {directory}')
                 self._schema_by_collection[name] = schema
 
     def __getitem__(self, name):
@@ -77,11 +62,7 @@ class MongoSchemas(collections.abc.Mapping):
             yield from self._cache.get_schema(directory)
 
     def __len__(self) -> int:
-        return sum(
-            len(self._cache.get_schema(directory))
-            for directory in self._directories
-        )
-
+        return sum((len(self._cache.get_schema(directory)) for directory in self._directories))
 
 def _get_paths(directory: pathlib.Path) -> dict[str, pathlib.Path]:
-    return {path.stem: path for path in directory.glob('*.yaml')}
+    pass

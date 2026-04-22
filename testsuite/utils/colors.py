@@ -1,26 +1,19 @@
 import sys
 
-
 class Colors:
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    GRAY = '\033[37m'
-    DARK_GRAY = '\033[37m'
-    BRIGHT_RED = '\033[91m'
-    BRIGHT_GREEN = '\033[92m'
-    BRIGHT_YELLOW = '\033[93m'
-    DEFAULT = '\033[0m'
-    DEFAULT_BG = '\033[49m'
-    BG_BLACK = '\033[40m'
-
+    BLACK = '\x1b[30m'
+    RED = '\x1b[31m'
+    GREEN = '\x1b[32m'
+    YELLOW = '\x1b[33m'
+    BLUE = '\x1b[34m'
+    GRAY = '\x1b[37m'
+    DARK_GRAY = '\x1b[37m'
+    BRIGHT_RED = '\x1b[91m'
+    BRIGHT_GREEN = '\x1b[92m'
+    BRIGHT_YELLOW = '\x1b[93m'
+    DEFAULT = '\x1b[0m'
+    DEFAULT_BG = '\x1b[49m'
+    BG_BLACK = '\x1b[40m'
 
 def should_enable_color(pytestconfig) -> bool:
-    option = getattr(pytestconfig.option, 'color', 'no')
-    if option == 'yes':
-        return True
-    if option == 'auto':
-        return sys.stderr.isatty()
-    return False
+    pass

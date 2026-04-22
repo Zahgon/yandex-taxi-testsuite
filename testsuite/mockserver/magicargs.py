@@ -1,77 +1,51 @@
 import typing
-
 import aiohttp.web
-
 from testsuite.utils import callinfo, http
 
-
 def magic_arg(func):
-    func.need_wrapped_request = False
-    return func
-
+    pass
 
 def magic_arg_wrapped(func):
-    func.need_wrapped_request = True
-    return func
-
+    pass
 
 @magic_arg_wrapped
 def arg_body_json(request: http.Request):
-    return request.json
-
+    pass
 
 @magic_arg_wrapped
 def arg_body_binary(request: http.Request):
-    return request.get_data()
-
+    pass
 
 @magic_arg_wrapped
 def arg_form(request: http.Request):
-    return request.form
-
+    pass
 
 @magic_arg
 def arg_cookies(request: aiohttp.web.BaseRequest):
-    return request.cookies
-
+    pass
 
 @magic_arg
 def arg_method(request: aiohttp.web.BaseRequest):
-    return request.method
-
+    pass
 
 @magic_arg
 def arg_path(request: aiohttp.web.BaseRequest):
-    return request.path
-
+    pass
 
 @magic_arg
 def arg_headers(request: aiohttp.web.BaseRequest):
-    return request.headers
-
+    pass
 
 @magic_arg
 def arg_query(request: aiohttp.web.BaseRequest):
-    return request.query
-
+    pass
 
 @magic_arg
 def arg_content_type(request: aiohttp.web.BaseRequest):
-    return request.content_type
-
+    pass
 
 class MagicArgsHandler:
-    magic_args_handlers = {
-        'body_binary': arg_body_binary,
-        'body_json': arg_body_json,
-        'content_type': arg_content_type,
-        'cookies': arg_cookies,
-        'form': arg_form,
-        'headers': arg_headers,
-        'method': arg_method,
-        'path': arg_path,
-        'query': arg_query,
-    }
+    magic_args_handlers = {'body_binary': arg_body_binary, 'body_json': arg_body_json, 'content_type': arg_content_type, 'cookies': arg_cookies, 'form': arg_form, 'headers': arg_headers, 'method': arg_method, 'path': arg_path, 'query': arg_query}
     has_request = False
 
     def __init__(self, func: typing.Callable, *, raw_request: bool) -> None:
@@ -92,43 +66,10 @@ class MagicArgsHandler:
                 self._handle_arg(arg)
 
     def _infer_request_type(self, request_type: type) -> None:
-        if request_type is aiohttp.web.BaseRequest:
-            self.raw_request = True
-        elif request_type is http.Request:
-            self.raw_request = False
+        pass
 
     def _handle_arg(self, arg: str) -> None:
-        if arg in self.magic_args_handlers:
-            self.magic_args.append((arg, self.magic_args_handlers[arg]))
+        pass
 
-    async def build_args(
-        self,
-        request: aiohttp.web.BaseRequest,
-        orig_kwargs: dict[str, object],
-    ) -> tuple:
-        wrapped_request: http.Request | None
-        if self.has_request and not self.raw_request:
-            wrapped_request = await http.wrap_request(request)
-        else:
-            wrapped_request = None
-
-        kwargs = orig_kwargs.copy()
-        for arg, handler in self.magic_args:
-            if arg in kwargs:
-                continue
-            if handler.need_wrapped_request:
-                if wrapped_request is None:
-                    wrapped_request = await http.wrap_request(request)
-                kwargs[arg] = handler(wrapped_request)
-            else:
-                kwargs[arg] = handler(request)
-
-        args: tuple
-        if self.has_request:
-            if self.raw_request:
-                args = (request,)
-            else:
-                args = (wrapped_request,)
-        else:
-            args = ()
-        return args, kwargs
+    async def build_args(self, request: aiohttp.web.BaseRequest, orig_kwargs: dict[str, object]) -> tuple:
+        pass

@@ -12,8 +12,7 @@ def to_utc(stamp: datetime.datetime) -> datetime.datetime:
 
 
 def timestring(stamp: datetime.datetime) -> str:
-    stamp = to_utc(stamp)
-    return stamp.strftime('%Y-%m-%dT%H:%M:%S.%f+0000')
+    pass
 
 
 def utcnow() -> datetime.datetime:

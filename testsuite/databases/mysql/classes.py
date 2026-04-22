@@ -2,7 +2,6 @@ import dataclasses
 import pathlib
 import typing
 
-
 @dataclasses.dataclass(frozen=True)
 class ConnectionInfo:
     """Mysql connection info class.
@@ -13,7 +12,6 @@ class ConnectionInfo:
     :param password: database password
     :param dbname: database name
     """
-
     port: int = 3306
     hostname: str = 'localhost'
     user: str | None = None
@@ -22,16 +20,14 @@ class ConnectionInfo:
 
     def replace(self, **kwargs) -> 'ConnectionInfo':
         """Returns new instance with attributes updated."""
-        return dataclasses.replace(self, **kwargs)
-
+        pass
 
 @dataclasses.dataclass(frozen=True)
 class ServiceSettings:
     port: int
 
     def get_conninfo(self) -> ConnectionInfo:
-        return ConnectionInfo(port=self.port, user='root')
-
+        pass
 
 @dataclasses.dataclass(frozen=True)
 class DatabaseConfig:
@@ -40,6 +36,4 @@ class DatabaseConfig:
     create: bool = True
     keep_tables: typing.Sequence[str] = ()
     truncate_non_empty: bool = False
-
-
 DatabasesDict = dict[str, DatabaseConfig]

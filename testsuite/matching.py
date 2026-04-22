@@ -4,20 +4,14 @@ import itertools
 import operator
 import re
 import typing
-
 import dateutil.parser
-
 
 class BaseError(Exception):
     pass
 
-
 class NoValueCapturedError(BaseError):
     pass
-
-
 _Sentinel = object()
-
 
 class Any:
     """Matches any value."""
@@ -28,10 +22,8 @@ class Any:
     def __eq__(self, other):
         return True
 
-
 class AnyString:
     """Matches any string."""
-
     __testsuite_types__ = (str,)
 
     def __repr__(self):
@@ -40,8 +32,7 @@ class AnyString:
     def __eq__(self, other):
         if isinstance(other, str):
             return True
-        return any(issubclass(type, str) for type in _resolve_types(other))
-
+        return any((issubclass(type, str) for type in _resolve_types(other)))
 
 class RegexString:
     """Match string with regular expression.
@@ -53,7 +44,6 @@ class RegexString:
           ...
        }
     """
-
     __testsuite_types__ = (str,)
 
     def __init__(self, pattern):
@@ -69,13 +59,11 @@ class RegexString:
             return other._pattern == self._pattern
         return False
 
-
 class UuidString(RegexString):
     """Matches lower-case hexadecimal uuid string."""
 
     def __init__(self):
         super().__init__('^[0-9a-f]{32}$')
-
 
 class ObjectIdString(RegexString):
     """Matches lower-case hexadecimal objectid string."""
@@ -83,10 +71,8 @@ class ObjectIdString(RegexString):
     def __init__(self):
         super().__init__('^[0-9a-f]{24}$')
 
-
 class DatetimeString:
     """Matches datetime string in any format."""
-
     __testsuite_types__ = (str,)
 
     def __repr__(self):
@@ -100,7 +86,6 @@ class DatetimeString:
             except ValueError:
                 return False
         return isinstance(other, DatetimeString)
-
 
 class IsInstance:
     """Match value by its type.
@@ -126,7 +111,7 @@ class IsInstance:
             type_names = [t.__name__ for t in self._types]
         else:
             type_names = [self._types.__name__]
-        return f'<IsInstance {", ".join(type_names)}>'
+        return f"<IsInstance {', '.join(type_names)}>"
 
     def __eq__(self, other):
         if isinstance(other, self._types):
@@ -134,7 +119,6 @@ class IsInstance:
         if isinstance(other, IsInstance):
             return self._types == other._types
         return False
-
 
 class And:
     """Logical AND on conditions.
@@ -150,7 +134,7 @@ class And:
 
     def __repr__(self):
         conditions = [repr(cond) for cond in self._conditions]
-        return f'<And {", ".join(conditions)}>'
+        return f"<And {', '.join(conditions)}>"
 
     def __eq__(self, other):
         if isinstance(other, And):
@@ -162,7 +146,6 @@ class And:
 
     def __testsuite_visit__(self, visit):
         return And(*[visit(condition) for condition in self._conditions])
-
 
 class Or:
     """Logical OR on conditions.
@@ -178,7 +161,7 @@ class Or:
 
     def __repr__(self):
         conditions = [repr(cond) for cond in self._conditions]
-        return f'<Or {", ".join(conditions)}>'
+        return f"<Or {', '.join(conditions)}>"
 
     def __eq__(self, other):
         if isinstance(other, Or):
@@ -190,7 +173,6 @@ class Or:
 
     def __testsuite_visit__(self, visit):
         return Or(*[visit(condition) for condition in self._conditions])
-
 
 class Not:
     """Condition inversion.
@@ -217,7 +199,6 @@ class Not:
     def __testsuite_visit__(self, visit):
         return Not(visit(self._condition))
 
-
 class Comparator:
     op: typing.Callable[[typing.Any, typing.Any], bool] = operator.eq
 
@@ -238,7 +219,6 @@ class Comparator:
     def __testsuite_visit__(self, visit):
         return self.__class__(visit(self._value))
 
-
 class Gt(Comparator):
     """Value is greater than.
 
@@ -249,9 +229,7 @@ class Gt(Comparator):
        # Value must be > 10
        assert value == matching.Gt(10)
     """
-
     op = operator.gt
-
 
 class Ge(Comparator):
     """Value is greater or equal.
@@ -263,9 +241,7 @@ class Ge(Comparator):
        # Value must be >= 10
        assert value == matching.Ge(10)
     """
-
     op = operator.ge
-
 
 class Lt(Comparator):
     """Value is less than.
@@ -277,9 +253,7 @@ class Lt(Comparator):
        # Value must be < 10
        assert value == matching.Lt(10)
     """
-
     op = operator.lt
-
 
 class Le(Comparator):
     """Value is less or equal.
@@ -291,9 +265,7 @@ class Le(Comparator):
        # Value must be <= 10
        assert value == matching.Le(10)
     """
-
     op = operator.le
-
 
 class PartialDict(collections.abc.Mapping):
     """Partial dictionary matching.
@@ -313,7 +285,6 @@ class PartialDict(collections.abc.Mapping):
            'foo': matching.Ge(1),
        })
     """
-
     __testsuite_types__ = (dict,)
 
     def __init__(self, *args, **kwargs):
@@ -337,11 +308,9 @@ class PartialDict(collections.abc.Mapping):
     def __eq__(self, other):
         if not isinstance(other, collections.abc.Mapping):
             return False
-
         for key in self:
             if other.get(key) != self.get(key):
                 return False
-
         return True
 
     def __testsuite_visit__(self, visit):
@@ -352,17 +321,13 @@ class PartialDict(collections.abc.Mapping):
             return self
         return {**other, **self._dict}
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, collections.abc.Mapping):
-            return self, other
-        return self._dict, {
-            key: value for key, value in other.items() if key in self._dict
-        }
-
+            return (self, other)
+        return (self._dict, {key: value for key, value in other.items() if key in self._dict})
 
 class UnorderedList:
+
     def __init__(self, sequence, key):
         self._value = sorted(sequence, key=key)
         self._key = key
@@ -383,45 +348,19 @@ class UnorderedList:
     def __testsuite_resolve_value__(self, other, report_error):
         if not isinstance(other, list):
             return self
-
         sort_key = self._key or (lambda x: x)
-        other_sorted = sorted(
-            enumerate(other), key=lambda x: (sort_key(x[1]), x[0])
-        )
-
+        other_sorted = sorted(enumerate(other), key=lambda x: (sort_key(x[1]), x[0]))
         idx_seq = itertools.count(len(other_sorted))
         it_self = iter(self._value)
 
         def doit():
-            item_self = next(it_self, _Sentinel)
-            for idx_other, item_other in other_sorted:
-                if item_self is _Sentinel:
-                    return
-                while sort_key(item_other) > sort_key(item_self):
-                    yield next(idx_seq), item_self
-                    item_self = next(it_self, _Sentinel)
-                    if item_self is _Sentinel:
-                        return
-                if sort_key(item_other) < sort_key(item_self):
-                    continue
-                if item_other == item_self:
-                    yield idx_other, item_other
-                else:
-                    yield next(idx_seq), item_self
-                item_self = next(it_self, _Sentinel)
-            if item_self is not _Sentinel:
-                yield next(idx_seq), item_self
-            yield from zip(idx_seq, it_self)
-
+            pass
         return [item for _, item in sorted(doit(), key=operator.itemgetter(0))]
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, list):
-            return self, other
-        return self._value, list(sorted(other, key=self._key))
-
+            return (self, other)
+        return (self._value, list(sorted(other, key=self._key)))
 
 class AnyList:
     """Value is a list.
@@ -444,13 +383,10 @@ class AnyList:
             return self
         return other
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, list):
-            return self, other
-        return other, other
-
+            return (self, other)
+        return (other, other)
 
 class ListOf:
     """Value is a list of values.
@@ -487,13 +423,10 @@ class ListOf:
             return self
         return [self._value] * len(other)
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, list):
-            return self, other
-        return [self._value] * len(other), other
-
+            return (self, other)
+        return ([self._value] * len(other), other)
 
 class AnyDict:
     """Value is a dictionary.
@@ -516,13 +449,10 @@ class AnyDict:
             return self
         return other
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, collections.abc.Mapping):
-            return self, other
-        return other, other
-
+            return (self, other)
+        return (other, other)
 
 class DictOf:
     """Value is a dictionary of (key, value) pairs.
@@ -562,35 +492,22 @@ class DictOf:
     def __testsuite_resolve_value__(self, other, report_error):
         if not isinstance(other, collections.abc.Mapping):
             return self
-
         result = {}
         for key, value in other.items():
             if key != self._key:
-                report_error(
-                    f'dict key must match {self._key} expression',
-                    path=f'[{key!r}]',
-                )
+                report_error(f'dict key must match {self._key} expression', path=f'[{key!r}]')
             result[key] = self._value
         return result
 
-    def __testsuite_adjust_values__(
-        self, other, report_error
-    ) -> tuple[typing.Any, typing.Any]:
+    def __testsuite_adjust_values__(self, other, report_error) -> tuple[typing.Any, typing.Any]:
         if not isinstance(other, collections.abc.Mapping):
-            return self, other
-
+            return (self, other)
         adjusted_self = {}
-
         for key, value in other.items():
             if key != self._key:
-                report_error(
-                    f'dict key must match {self._key} expression',
-                    path=f'[{key!r}]',
-                )
+                report_error(f'dict key must match {self._key} expression', path=f'[{key!r}]')
             adjusted_self[key] = self._value
-
-        return adjusted_self, other
-
+        return (adjusted_self, other)
 
 class Capture:
     """Capture matched value(s).
@@ -623,13 +540,11 @@ class Capture:
 
     @property
     def value(self):
-        if self._captured:
-            return self._captured[0]
-        raise NoValueCapturedError(f'No value captured for value {self._value}')
+        pass
 
     @property
     def values_list(self):
-        return self._captured
+        pass
 
     def __eq__(self, other):
         if self._value != other:
@@ -645,7 +560,6 @@ class Capture:
 
     def __testsuite_resolve_value__(self, other, report_error):
         return _resolve_value(self._value, other, report_error)
-
 
 def unordered_list(sequence, *, key=None):
     """Unordered list comparison.
@@ -665,26 +579,18 @@ def unordered_list(sequence, *, key=None):
 
        assert [3, 2, 1] == matching.unordered_list([1, 2, 3])
     """
-    return UnorderedList(sequence, key)
-
+    pass
 
 class _ObjectTransform:
+
     def visit(self, value):
-        if isinstance(value, dict):
-            return self.visit_dict(value)
-        if isinstance(value, list):
-            return self.visit_list(value)
-        visit = getattr(value, '__testsuite_visit__', None)
-        if visit:
-            return visit(self.visit)
-        return value
+        pass
 
     def visit_dict(self, value):
-        return {key: self.visit(value) for key, value in value.items()}
+        pass
 
     def visit_list(self, value):
-        return [self.visit(item) for item in value]
-
+        pass
 
 def recursive_partial_dict(*args, **kwargs):
     """Creates recursive partial dict.
@@ -704,31 +610,13 @@ def recursive_partial_dict(*args, **kwargs):
                     'foo: {'bar': 123}
                 })
     """
-
-    class Transform(_ObjectTransform):
-        def visit(self, value):
-            if isinstance(value, PartialDict):
-                return value
-            return super().visit(value)
-
-        def visit_dict(self, value):
-            value = super().visit_dict(value)
-            return PartialDict(value)
-
-    root = dict(*args, **kwargs)
-    return Transform().visit(root)
-
+    pass
 
 def _resolve_types(value):
-    return getattr(value, '__testsuite_types__', ())
-
+    pass
 
 def _resolve_value(obj, other, report_error):
-    if hasattr(obj, '__testsuite_resolve_value__'):
-        return obj.__testsuite_resolve_value__(other, report_error)
-    return obj
-
-
+    pass
 any_value = Any()
 any_float = IsInstance(float)
 any_integer = IsInstance(int)
@@ -748,6 +636,5 @@ any_string = AnyString()
 datetime_string = DatetimeString()
 objectid_string = ObjectIdString()
 uuid_string = UuidString()
-
 any_dict = AnyDict()
 any_list = AnyList()

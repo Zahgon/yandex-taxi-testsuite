@@ -1,7 +1,6 @@
 import subprocess
 import uuid
 
-
 class DaemonInstance:
     process: subprocess.Popen | None
 
@@ -11,4 +10,4 @@ class DaemonInstance:
         self.process = process
 
     async def aclose(self) -> None:
-        await self._owner.__aexit__(None, None, None)
+        pass
